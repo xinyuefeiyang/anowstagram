@@ -3,11 +3,23 @@
 
 from anowstagram import app,db
 from models import Image,User,Comment
-from flask import render_template,redirect,request,flash,get_flashed_messages
+from flask import render_template,redirect,request,flash,get_flashed_messages,url_for
 import random,hashlib,json
 from flask_login import login_user,logout_user,current_user,login_required
 from qiniusdk import qiniu_upload_file
 
+#**********************#
+#Added by Jia on 2017/7/27
+from datetime import datetime
+from anowstagram.token import generate_confirmation_token,confirm_token
+#**********************#
+
+
+#**********************#
+#Added by Jia on 2017/7/29
+from anowstagram.email import send_mail
+from anowstagram.decorators import check_confirmed
+#**********************#
 
 import sys,uuid,os
 reload(sys)
@@ -26,6 +38,7 @@ def index():
 
 @app.route('/profile/<int:user_id>/')
 @login_required
+@check_confirmed
 def profile(user_id):
     user = User.query.get(user_id)
     if user==None:
@@ -104,16 +117,34 @@ def login():
     return redirect('/')
 
 
-
 @app.route('/reg/',methods={'post','get'})
 def reg():
     #request.args
     #request.form
     username = request.values.get('username').strip()
+
+    #*********************************#
+    #Added by Jia on 2017/7/27
+    email = request.values.get('email').strip()
+    #*********************************# 
+
     password = request.values.get('password').strip()
 
+
+    #*********************************#
+    #Deleted by Jia on 2017/7/27#
     if username=='' or password=='':	
 	return redirect_message('/regloginpage','用户名和密码不能为空','reglogin')
+    #*********************************#
+
+    #*********************************#
+    #Added by Jia on 2017/7/27
+    if username == '' or email=='' or password == '':
+	return redirect_message('/regloginpage','用户名,邮箱和密码都不能为空','reglogin')
+    #*********************************#
+
+
+    
     user = User.query.filter_by(username = username).first()
     if user!=None:
 	return redirect_message('/regloginpage','用户名已经存在','reglogin')
@@ -124,14 +155,101 @@ def reg():
     m = hashlib.md5()
     m.update(password+salt)
     password = m.hexdigest()
-    user = User(username,password,salt)
+
+    #*********************************#
+    #Deleted by Jia on 2017/7/27
+    #user = User(username,password,salt)
+    #*********************************#
+    
+    #Added by Jia on 2017/7/27
+    user = User(username,password,salt=salt,email=email,confirmed=False)
+    #********************************#
+
+
+
     db.session.add(user)
     db.session.commit()
+    
+
+    #*********************************#
+    #Added by Jia on 2017/7/27
+    token = generate_confirmation_token(user.email)
+    #*********************************#
+
+    #*********************************#
+    #Added by Jia on 2017/7/27
+    #confirm_url=url_for('/',token=token,_external=True)
+    confirm_url=url_for('confirm_email',token=token,_external=True)
+    html = render_template('activate.html',confirm_url=confirm_url)
+    subject = "Please confirm your email"
+    send_mail(user.email,subject,html) 
+    #*********************************#
+
+
+
 
     login_user(user)
 
+    #********************************#
+    #Added by Jia on 2017/7/29
+    flash('A confirmation email has been sent via email.','success')
+    #********************************#
+    return redirect('/unconfirmed')
 
+#***********************************#
+#Added by Jia on 2017/7/27
+@app.route('/confirm/<token>')
+@login_required
+def confirm_email(token):
+    try:
+	email=confirm_token(token)
+    except:
+	flash('The confirmation link is invalid or has expired.''danger')
+    user=User.query.filter_by(email=email).first_or_404()
+    if user.confirmed:
+	flash('Account already confirmed. Please login.','success')
+    else:
+	user.confirmed = True
+	user.confirmed_on = datetime.now()
+	db.session.add(user)
+	db.session.commit()
+	flash('You have confirmed your account. Thanks!','success')
     return redirect('/')
+
+
+#***********************************#
+
+
+#********************************#
+#Added by Jia on 2017/7/29
+@app.route('/unconfirmed/')
+@login_required
+def unconfirmed():
+    if current_user.confirmed:
+	return redirect('/')
+    flash('Please confirm your account!','warning')
+    return render_template('unconfirmed.html')
+#********************************#
+
+
+#********************************#
+#Added by Jia on 2017/7/29
+@app.route('/resend/')
+@login_required
+def resend_confirmation():
+    token = generate_confirmation_token(current_user.email)
+    confirm_url = url_for('confirm_email',token=token,_external=True)
+    html = render_template('/activate.html',confirm_url = confirm_url)
+    subject = "Please confirm your email"
+    send_mail(current_user.email,subject,html)
+    flash('A new confirmation email has been sent.','success')
+    return redirect('/unconfirmed')
+
+#********************************#
+
+
+
+
 
 
 @app.route('/logout/')

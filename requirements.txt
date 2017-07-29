@@ -1,6 +1,7 @@
 BeautifulSoup==3.2.1
 Flask==0.12.2
 Flask-Login==0.4.0
+Flask-Mail==0.9.1
 Flask-SQLAlchemy==2.2
 Flask-Script==2.0.5
 Jinja2==2.7.2
@@ -17,6 +18,7 @@ adium-theme-ubuntu==0.3.4
 apt-xapian-index==0.45
 argparse==1.2.1
 astroid==1.0.1
+blinker==1.4
 ccsm==0.9.11.3
 chardet==2.0.1
 click==6.7

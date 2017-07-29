@@ -55,11 +55,43 @@ class User(db.Model):
     images = db.relationship('Image',backref='user',lazy='dynamic')
 
 
-    def __init__(self,username,password,salt=""):
+    #********************************************#
+    #Added by Jia on 2017/7/27
+    email = db.Column(db.String(256), unique=True, nullable=False)
+    registered_on = db.Column(db.DateTime,nullable=False)
+    admin = db.Column(db.Boolean, nullable=False, default=False)
+    confirmed = db.Column(db.Boolean, nullable = False, default = False)
+    confirmed_on = db.Column(db.DateTime,nullable=True)    
+
+    #********************************************#
+
+
+
+    #********************************************#
+    #Deleted by Jia on 2017/7/27
+    #def __init__(self,username,password,salt=""):
+    #	self.username = username
+    #	self.password = password
+    #	self.salt = salt
+    #	self.head_url = 'http://images.nowcoder.com/head/' + str(random.randint(0,1000)) + 't.png'
+    #********************************************#
+
+
+    #*******************************************#
+    #Added by Jia on 2017/7/27
+    def __init__(self,username,password,email,confirmed,salt="",admin=False,confirmed_on=None):
 	self.username = username
 	self.password = password
 	self.salt = salt
 	self.head_url = 'http://images.nowcoder.com/head/' + str(random.randint(0,1000)) + 't.png'
+	self.email = email
+	self.registered_on = datetime.now()
+	self.admin = admin
+	self.confirmed = confirmed
+	self.confirmed_on = confirmed_on
+    #*******************************************#
+
+
 
 
     def __repr__(self):

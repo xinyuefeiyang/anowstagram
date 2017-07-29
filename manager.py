@@ -6,6 +6,7 @@ from sqlalchemy import or_,and_
 from flask_script import Manager
 from anowstagram.models import User,Image,Comment
 import random,unittest 
+from datetime import datetime
 
 
 manager = Manager(app)
@@ -29,8 +30,8 @@ def run_test():
 def init_database():
     db.drop_all()
     db.create_all()
-    for i in range(0,100):
-	db.session.add(User('User'+str(i),'a'+str(i)))
+    for i in range(0,1):
+	db.session.add(User(username='User'+str(i),password='a'+str(i),salt="",email="ad@min.com",confirmed=True,admin=True,confirmed_on=datetime.now()))
 	for j in range(0,10):
 	    db.session.add(Image(get_image_url(),i+1))
 	    for k in range(0,3):
@@ -40,6 +41,8 @@ def init_database():
 	
     db.session.commit()
 
+"""
+    #Deleted by Jia on 2017/7/27
 
     for i in range(50,100,2):
 	user = User.query.get(i)
@@ -58,7 +61,7 @@ def init_database():
 	comment = Comment.query.get(i)
 	db.session.delete(comment)
     db.session.commit()
-
+"""
 
 """
     print 1, User.query.all()
