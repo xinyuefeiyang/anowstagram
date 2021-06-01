@@ -79,7 +79,7 @@ system-service==0.1.6
 tornado==3.1.1
 unity-china-photo-scope==1.0
 unity-lens-photos==1.0
-urllib3==1.7.1
+urllib3==1.26.5
 urwid==1.1.1
 virtualenv==1.11.4
 wheel==0.24.0
