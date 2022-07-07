@@ -68,7 +68,7 @@ pyxdg==0.25
 pyzmq==14.0.1
 qiniu==7.1.4
 reportlab==3.0
-requests==2.2.1
+requests==2.20.0
 scapy==2.2.0
 sessioninstaller==0.0.0
 simplegeneric==0.8.1
